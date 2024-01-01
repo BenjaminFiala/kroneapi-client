@@ -3,19 +3,52 @@
     <h1>Krone LLM Textshortening</h1>
     <div class="content">
       <div class="box">
-        <textarea class="textbox input-textbox" placeholder="Enter text here" rows="6"></textarea>
-        <a class="convert" onclick="App.getData()">Convert</a>
-        <textarea class="textbox output-textbox" placeholder="Result" rows="6" readonly></textarea>
+        <textarea class="textbox input-textbox" placeholder="Enter text here" rows="6" v-model="inputText"></textarea>
+        <button class="convert" @click="convertText">Convert</button>
+        <textarea class="textbox output-textbox" placeholder="Result" rows="6" readonly v-model="outputText"></textarea>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
-  name: 'HelloWorld'
-}
+  name: 'HelloWorld',
+  data() {
+    return {
+      inputText: '',
+      outputText: '',
+    };
+  },
+  methods: {
+    async postDataToServer(data) {
+      try {
+        const postResponse = await axios.post(`http://localhost:5000/article/input`, data);
+        console.log('Post response:', postResponse.data);
+
+        // After successful POST, make a GET request
+        const getResponse = await axios.get(`http://localhost:5000/article/output`);
+        console.log('Get response:', getResponse.data);
+
+        this.outputText = getResponse.data.content || 'No content found'; // Update outputText with content
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    },
+    async convertText() {
+      try {
+        await this.postDataToServer({ content: this.inputText });
+      } catch (error) {
+        console.error('Error converting text:', error);
+      }
+    },
+  },
+};
 </script>
+
+
 
 <style scoped>
 
